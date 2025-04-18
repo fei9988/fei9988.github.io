@@ -225,9 +225,3 @@ jekyll-archives:
     tag: /tags/:name/
     category: /categories/:name/
 
-
-
-html-proofer:
-  check_external_hash: false
-  disable_external: true
-  disable_ssl_check: true
