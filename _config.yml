@@ -228,4 +228,5 @@ jekyll-archives:
 
 
 html-proofer:
+  check_external_hash: false
   disable_external: true
