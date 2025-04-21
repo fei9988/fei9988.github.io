@@ -52,8 +52,8 @@ public interface BeanMetadataElement {
 
 
 
-## 常量
-### Scope 常量
+
+## Scope 常量
 
 ```java
 String SCOPE_SINGLETON = ConfigurableBeanFactory.SCOPE_SINGLETON;
@@ -71,7 +71,8 @@ public class MyService {
 ```
 - Spring 在创建 Bean 的 BeanDefinition 时，会读取它的 `@Scope` 注解，并根据注解的值来设置 Bean 的作用域。
 - 后面 Spring 真正生成 Bean 时会判断
-- 
+
+
 ```java
 if ("singleton".equals(beanDefinition.getScope())) {
     // 从缓存中取
@@ -81,7 +82,7 @@ if ("singleton".equals(beanDefinition.getScope())) {
 ```
 
 
-### Role 常量
+## Role
 
 ```java
 int ROLE_APPLICATION = 0;
@@ -94,10 +95,45 @@ int ROLE_INFRASTRUCTURE = 2;
 - 1: 用于某些功能的辅助 Bean，例如 AOP 代理 Bean
 - 2：Spring 框架内部使用的 Bean，例如 BeanPostProcessor Bean
 
+```java
+int getRole();
+void setRole(int role);
+```
 
-## 核心方法分类
+### `role` 的作用是什么？
+- `role` 属性用于标识 Bean 的角色，它允许开发者为 Bean 进行分类，以便于管理、调试和优化。
 
-### 依赖结构
+### 为什么需要 `role`?
+- 通过设置`role`, Spring可以根据不同的角色做出不同的处理，特别是在调试时，Spring 容器可以标识出哪些 Bean 时关键 Bean，哪些是辅助 Bean
+
+
+## `description` Bean 的描述
+
+```java
+String getDescription();
+```
+
+- `description` 属性允许开发者为 Bean 添加一些人类可读的描述信息，例如 Bean 的用途、功能等。
+- 帮助开发人员更好地理解 Bean 的作用和功能
+
+### 为什么要使用 `description`？
+- 调试时更容易理解：在应用发生错误时，description 可以帮助你更快地定位问题，理解某个 Bean 的作用。 
+- 代码文档：它也有助于团队成员或其他开发人员了解这个 Bean 的用途，提升代码可读性。
+
+
+## `resourceDescription` 来源描述
+
+```java
+String getResourceDescription();
+``` 
+
+- `resourceDescription` 属性提供了 Bean 定义的来源信息，它通常是一个指向 Bean 定义的资源（如 XML 配置文件、注解、Java 配置类等）的描述。
+
+### 为什么需要 resourceDescription？
+- 当一个应用中有大量的 Bean 定义时，有时你可能会遇到一些配置错误或不一致的情况。
+- 通过 resourceDescription，Spring 可以提供详细的 Bean 来源信息，帮助你快速定位出错的地方。
+
+## 依赖结构
 
 ```java
 String getParentName();
@@ -106,7 +142,7 @@ void setParentName(String parentName);
 
 - 允许一个 Bean 定义继承另一个，类似 XML 中的`<bean parent="...">`
 
-### Bean 的创建方式
+## Bean 的创建方式
 
 ```java
 String getBeanClassName();
@@ -124,7 +160,7 @@ void setFactoryMethodName(String factoryMethodName);
 - `getFactoryMethodName()`: 静态工厂方法(无工厂 Bean),调用一个静态方法返回 bean, `MyFactory.createService()`
 
 
-### 懒加载
+## 懒加载
 ```java
 boolean isLazyInit();
 void setLazyInit(boolean lazyInit);
@@ -133,7 +169,7 @@ void setLazyInit(boolean lazyInit);
 - `true` 表示懒加载，只有真正请求这个 Bean 的时候，才会创建它
 - `false` Spring 启动时就会创建这个 Bean
 
-#### 什么时候用懒加载？
+### 什么时候用懒加载？
 懒加载常用于 性能优化，尤其是不确定某些 Bean 是否一定会用到时。懒加载能避免 Spring 容器启动时加载不必要的 Bean，提高启动速度。
 
 ```java
@@ -145,7 +181,7 @@ public MyService myService() {
 ```
 
 
-### 依赖关系 dependsOn
+## 依赖关系 dependsOn
 
 ```java
 String[] getDependsOn();
@@ -164,23 +200,23 @@ public MyService myService() {
 }
 ```
 
-#### 为什么要用 dependsOn？
+### 为什么要用 dependsOn？
 - 在某些情况下，某些 Bean 必须在其他 Bean 之前初始化（例如，一些需要提前配置的资源或连接池）。
 - 通过 dependsOn 可以明确指定这个依赖关系，确保初始化顺序正确。
 
-### autowiredCandidate 自动注入候选
+## autowiredCandidate 自动注入候选
 
 ```java
 boolean isAutowireCandidate();
 void setAutowireCandidate(boolean autowireCandidate);
 ```
 
-#### 自动注入候选是什么
+### 自动注入候选是什么
 - `autowireCandidate` 属性控制当前 Bean 是否可以自动注入到其他 Bean 中。默认情况下，Spring 会将每个 Bean 都作为自动注入候选。 
   - `true`：当前 Bean 可以作为自动注入的候选对象。 
   - `false`：当前 Bean 不会作为自动注入候选对象。
 
-#### 什么时候设置为 false
+### 什么时候设置为 false
 - 在某些情况下，你可能希望将某个 Bean 从自动注入的候选中排除。
 - 尤其是当有多个 Bean 可以注入时（比如多个 DataSource），你可以通过设置 autowireCandidate = false 来排除它。
 
@@ -199,14 +235,14 @@ public DataSource dataSource2() {
 ```
 
 
-### primary 首选 Bean
+## primary 首选 Bean
 
 ```java
 boolean isPrimary();
 void setPrimary(boolean primary);
 ```
 
-#### 什么是首选 Bean？
+### 什么是首选 Bean？
 - 当多个候选 Bean 都能满足自动注入要求时，Spring 会选一个 Bean 注入。通过 primary 属性，你可以指定哪个 Bean 是首选的。 
   - true：这个 Bean 是首选，Spring 会优先注入这个 Bean。 
   - false：不是首选。
@@ -224,5 +260,66 @@ public MyService myService2() {
 }
 ```
 - Spring 会优先注入 myService1，因为它被标记为 @Primary。
+
+
+## `isAbstract()`
+
+```java
+boolean isAbstract();            
+```
+
+- `isAbstract()` 属性用于标识 Bean 是否是一个抽象的 Bean。
+
+
+## ConstructorArgumentValues 存放构造函数的参数值
+
+```java
+ConstructorArgumentValues getConstructorArgument();
+```
+- 这个对象封装了使用构造方法实例化 Bean 时要传入的参数值
+
+```java
+UserService user = new UserService("admin", 8080);
+```
+
+Spring内部会记录为
+
+```java
+ConstructorArgumentValues cav = new ConstructorArgumentValues();
+cav.addGenericArgumentValue("admin");
+cav.addGenericArgumentValue(8080);
+```
+
+然后把它塞入 BeanDefinition 里
+
+```java
+beanDefinition.setConstructorArgumentValues(cav);
+```
+Spring 后面用反射调用这个构造函数传入这些参数。
+
+## MutablePropertyValues 存放通过 setter 注入的属性值
+
+例：
+
+```java
+UserService user = new UserService();
+user.setUsername("admin");
+user.setPort(8080);
+```
+
+Spring 内部会等价记录为：
+
+```java
+MutablePropertyValues mpv = new MutablePropertyValues();
+mpv.add("username", "admin");
+mpv.add("port", 8080);
+```
+
+然后把它塞进 BeanDefinition 里：
+
+```java
+beanDefinition.setPropertyValues(mpv);
+```
+Spring 后面用反射调用这个构造函数传入这些参数。
 
 
